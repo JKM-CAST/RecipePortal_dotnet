@@ -1,0 +1,45 @@
+name: Rescan Application in CAST Imaging Console
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch
+  workflow_dispatch:  # Manual trigger from Actions tab
+
+jobs:
+  rescan:
+    runs-on: self-hosted  # Use the self-hosted runner instead of windows-latest
+
+    steps:
+      # Step 1: Checkout the repository to the default location
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Copy repository to the target directory
+      - name: Copy repository to target directory
+        run: |
+          Copy-Item -Path "C:\Users\JKM\RecipePortal_dotnet" -Destination "C:\Users\JKM\Documents\Cast_Software\G\SOURCES\RecipePortal_dotnet" -Recurse -Force
+
+      # Step 3: List the contents of the checked-out repository in the target directory
+      - name: List directory contents of repository
+        shell: powershell
+        run: Get-ChildItem -Path 'C:\\Users\\JKM\\Documents\\Cast_Software\\G\\SOURCES\\RecipePortal_dotnet'
+
+      # Step 4: Set JAVA_HOME to local Java installation
+      - name: Set JAVA_HOME environment variable
+        run: |
+          $env:JAVA_HOME="C:\Program Files\Java\jdk-11.0.15.1"  # Set the path to your local Java installation
+          Write-Host "JAVA_HOME is set to $env:JAVA_HOME"
+        shell: powershell
+
+      # Step 5: Verify Java Version
+      - name: Verify Java Version
+        run: |
+          & "$env:JAVA_HOME\bin\java.exe" -version  # Check the local Java version
+        shell: powershell
+
+      # Step 6: Rescan the application using CAST AIP CLI
+      - name: Rescan Application
+        run: |
+          java -jar aip-console-tools-cli.jar add --apikey="pPk47wUp.lg90GFWe2R7X4oJFnIgW1FH5SGY0wkm9" -n "RecipePortal" --server-url="http://localhost:8081" --no-clone -f "C:\\Users\\JKM\\Documents\\Cast_Software\\G\\SOURCES\\RecipePortal_dotnet" --verbose=false --set-as-current=true --upload-application=true --process-imaging=true
+        shell: powershell
